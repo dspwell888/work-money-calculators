@@ -1,26 +1,185 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
+
+/*
+  Aesthetic: financial broadsheet.
+
+  Warm paper ground, ink type, hairline rules instead of drop shadows, a serif
+  display face for headings and a single signal green reserved for gains. The
+  output of this page gets screenshotted and forwarded to a manager, so it is
+  built to read like a payslip rather than a web widget.
+*/
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-plex-sans);
+  --font-mono: var(--font-plex-mono);
+  --font-heading: var(--font-display);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-gain: var(--gain);
+  --color-loss: var(--loss);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: oklch(0.973 0.009 84);
+  --foreground: oklch(0.215 0.014 58);
+  --card: oklch(0.988 0.006 88);
+  --card-foreground: oklch(0.215 0.014 58);
+  --popover: oklch(0.988 0.006 88);
+  --popover-foreground: oklch(0.215 0.014 58);
+  --primary: oklch(0.235 0.018 52);
+  --primary-foreground: oklch(0.975 0.008 86);
+  --secondary: oklch(0.945 0.011 82);
+  --secondary-foreground: oklch(0.235 0.018 52);
+  --muted: oklch(0.947 0.011 82);
+  --muted-foreground: oklch(0.502 0.016 66);
+  --accent: oklch(0.93 0.014 80);
+  --accent-foreground: oklch(0.235 0.018 52);
+  --destructive: oklch(0.472 0.145 28);
+  --border: oklch(0.868 0.012 76);
+  --input: oklch(0.845 0.014 76);
+  --ring: oklch(0.50 0.11 152);
+
+  /* Hairline rules: the structural device of this design. */
+  --rule: oklch(0.872 0.012 76);
+  --rule-strong: oklch(0.72 0.016 70);
+
+  /* Semantic, not decorative: green is only ever a raise. */
+  --gain: oklch(0.478 0.114 152);
+  --loss: oklch(0.472 0.145 28);
+
+  --radius: 0.25rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: oklch(0.192 0.008 72);
+    --foreground: oklch(0.928 0.008 84);
+    --card: oklch(0.232 0.009 72);
+    --card-foreground: oklch(0.928 0.008 84);
+    --popover: oklch(0.232 0.009 72);
+    --popover-foreground: oklch(0.928 0.008 84);
+    --primary: oklch(0.928 0.008 84);
+    --primary-foreground: oklch(0.192 0.008 72);
+    --secondary: oklch(0.282 0.009 72);
+    --secondary-foreground: oklch(0.928 0.008 84);
+    --muted: oklch(0.268 0.009 72);
+    --muted-foreground: oklch(0.688 0.012 78);
+    --accent: oklch(0.305 0.011 72);
+    --accent-foreground: oklch(0.928 0.008 84);
+    --destructive: oklch(0.665 0.155 27);
+    --border: oklch(0.335 0.011 72);
+    --input: oklch(0.375 0.012 72);
+    --ring: oklch(0.68 0.13 152);
+    --rule: oklch(0.335 0.011 72);
+    --rule-strong: oklch(0.46 0.013 72);
+    --gain: oklch(0.735 0.135 152);
+    --loss: oklch(0.665 0.155 27);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    /* Lining tabular figures everywhere: money must align in columns. */
+    font-variant-numeric: lining-nums;
+  }
+
+  /* Paper grain. Fixed, non-interactive, barely there — it stops the warm
+     ground from reading as flat beige. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.4;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
+  }
+
+  body > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-heading;
+    font-weight: 400;
+  }
+}
+
+@utility kicker {
+  @apply font-sans text-[0.6875rem] font-medium tracking-[0.14em] text-muted-foreground uppercase;
+}
+
+@utility rule-t {
+  border-top: 1px solid var(--rule);
+}
+
+@utility rule-b {
+  border-bottom: 1px solid var(--rule);
+}
+
+/* One orchestrated entrance rather than scattered micro-animations. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility rise {
+  animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
