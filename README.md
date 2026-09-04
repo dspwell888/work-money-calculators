@@ -83,6 +83,30 @@ an hour survives the round trip.
 
 There are no component tests. The UI is verified by driving a real browser.
 
+## Deploy
+
+This site is a static export (`output: 'export'`). Host it as files, not as a
+Node server. **Cloudflare Pages** is the intended host: free static bandwidth,
+no Fluid/CPU quota, custom domain on the same account you can buy the name in.
+
+Do not put it on a Vercel hobby team that is already at its Fluid Active CPU
+limit — that pause hits every project on the team, and this site does not need
+Vercel compute.
+
+Build settings for Pages (Git-connected or `wrangler pages deploy out`):
+
+- Build command: `npm run build`
+- Output directory: `out`
+- Node: 20+
+
+Set the public URL at build time:
+
+```bash
+NEXT_PUBLIC_SITE_URL=https://example.com npm run build
+```
+
+Until a domain is attached, a `*.pages.dev` URL is fine for a first look.
+
 ## Domain
 
 Not chosen yet. Nothing hardcodes a domain — canonical URLs, Open Graph URLs, the
