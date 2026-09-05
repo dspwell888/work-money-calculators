@@ -5,6 +5,7 @@ import {
   breakdown,
   computeRaise,
   computeRealRaise,
+  explainRaise,
   DEFAULT_SCHEDULE,
   formatCurrency,
   formatMoneyDisplay,
@@ -316,5 +317,82 @@ describe("realRaiseVerdict", () => {
   it("handles flat prices without claiming inflation did anything", () => {
     const v = realRaiseVerdict(computeRealRaise(60000, 63000, 0));
     expect(v).toMatch(/prices flat/);
+  });
+});
+
+describe("explainRaise — substitute the visitor's numbers", () => {
+  it("writes the 5% on $60,000 example with the paycheck and real-raise lines", () => {
+    const sc = scenario({ percent: 5 });
+    const result = computeRaise(60000, sc, S);
+    const lines = explainRaise({
+      currentAnnual: 60000,
+      scenario: sc,
+      result,
+      schedule: S,
+      period: "biweekly",
+      inflationPercent: 3,
+    });
+    expect(lines[0]).toEqual({
+      expression: "$60,000 × (1 + 5% ÷ 100)",
+      result: "$63,000",
+      unit: "per year",
+    });
+    expect(lines[1]).toEqual({
+      expression: "($63,000 − $60,000) ÷ 26",
+      result: "$115.38",
+      unit: "every 2 weeks",
+    });
+    expect(lines[2]).toEqual({
+      expression: "(1 + 5% ÷ 100) ÷ (1 + 3% ÷ 100) − 1",
+      result: "+1.94%",
+      unit: "real raise",
+    });
+  });
+
+  it("shows the annualisation step for an hourly flat increase", () => {
+    const sc = scenario({ mode: "amount", amount: 2, amountPeriod: "hourly" });
+    const result = computeRaise(62400, sc, S);
+    const lines = explainRaise({
+      currentAnnual: 62400,
+      scenario: sc,
+      result,
+      schedule: S,
+      period: "annual",
+      inflationPercent: 0,
+    });
+    expect(lines[0]).toEqual({
+      expression: "$2 per hour × 2,080",
+      result: "$4,160",
+      unit: "a year",
+    });
+    expect(lines[1]).toEqual({
+      expression: "$62,400 + $4,160",
+      result: "$66,560",
+      unit: "per year",
+    });
+  });
+
+  it("reverses a target salary into an increase and a percentage", () => {
+    const sc = scenario({
+      mode: "target",
+      target: 80000,
+      targetPeriod: "annual",
+    });
+    const result = computeRaise(62400, sc, S);
+    const lines = explainRaise({
+      currentAnnual: 62400,
+      scenario: sc,
+      result,
+      schedule: S,
+      period: "annual",
+      inflationPercent: 0,
+    });
+    expect(lines[0]).toEqual({
+      expression: "$80,000 − $62,400",
+      result: "$17,600",
+      unit: "increase",
+    });
+    expect(lines[1].expression).toBe("$17,600 ÷ $62,400 × 100");
+    expect(lines[1].result).toBe("+28.21%");
   });
 });

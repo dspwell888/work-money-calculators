@@ -21,6 +21,7 @@ import {
   computeRealRaise,
   DEFAULT_INFLATION_PERCENT,
   DEFAULT_SCHEDULE,
+  explainRaise,
   formatCurrency,
   formatMoneyDisplay,
   formatPercent,
@@ -33,6 +34,7 @@ import {
   toAnnual,
   type PayPeriod,
   type RaiseMode,
+  type RaiseMathLine,
   type Scenario,
   type WorkSchedule,
 } from "@/lib/salary";
@@ -325,6 +327,7 @@ export function RaiseCalculator() {
             period={state.period}
             schedule={schedule}
             taxRate={showTakeHome ? taxRate : null}
+            inflationPercent={inflationPercent}
             onChange={(next) => patchScenario(0, next)}
           />
         ) : (
@@ -549,7 +552,8 @@ export function RaiseCalculator() {
         </div>
       </Panel>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap gap-3">
         <CopyButton
           getValue={() => summary}
           idleLabel="Copy summary"
@@ -566,6 +570,11 @@ export function RaiseCalculator() {
           variant="outline"
         />
       </div>
+        <p className="max-w-prose text-[0.8125rem] leading-relaxed text-muted-foreground">
+          The share link contains the values you entered. Anyone with the
+          link — and your browser history or sync — can see them.
+        </p>
+      </div>
     </div>
   );
 }
@@ -580,6 +589,7 @@ function SingleScenario({
   period,
   schedule,
   taxRate,
+  inflationPercent,
   onChange,
 }: {
   scenario: Scenario;
@@ -587,6 +597,7 @@ function SingleScenario({
   period: PayPeriod;
   schedule: WorkSchedule;
   taxRate: number | null;
+  inflationPercent: number;
   onChange: (next: Partial<Scenario>) => void;
 }) {
   return (
@@ -634,6 +645,16 @@ function SingleScenario({
             period={period}
             schedule={schedule}
             taxRate={taxRate}
+          />
+          <ShowTheMath
+            lines={explainRaise({
+              currentAnnual: result.currentAnnual,
+              scenario,
+              result,
+              schedule,
+              period,
+              inflationPercent,
+            })}
           />
         </div>
       </div>
@@ -715,6 +736,31 @@ function PeriodBreakdown({
           )}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function ShowTheMath({ lines }: { lines: RaiseMathLine[] }) {
+  return (
+    <div className="rule-t px-5 py-5 sm:px-7">
+      <span className="kicker">Show the math</span>
+      <div className="mt-3 flex flex-col gap-3">
+        {lines.map((line) => (
+          <p
+            key={`${line.expression}=${line.result}`}
+            className="font-mono text-sm leading-relaxed"
+          >
+            <span className="text-muted-foreground">{line.expression} =</span>{" "}
+            <span className="font-medium">{line.result}</span>
+            {line.unit ? (
+              <>
+                {" "}
+                <span className="text-muted-foreground">{line.unit}</span>
+              </>
+            ) : null}
+          </p>
+        ))}
+      </div>
     </div>
   );
 }

@@ -315,3 +315,102 @@ export function realRaiseVerdict(r: RealRaiseResult): string {
   }
   return `You got ${nominal}, prices rose ${inflation}, so you are genuinely ${real} better off.`;
 }
+
+/* ------------------------------------------------------------------ */
+/* Show the math — the visitor's own numbers in the formulas           */
+/* ------------------------------------------------------------------ */
+
+export interface RaiseMathLine {
+  expression: string;
+  result: string;
+  unit: string;
+}
+
+function formulaPercent(value: number): string {
+  if (!Number.isFinite(value)) return "—";
+  return `${Number(value.toFixed(2))}%`;
+}
+
+function formulaCount(value: number): string {
+  if (!Number.isFinite(value)) return "—";
+  if (Number.isInteger(value)) return value.toLocaleString("en-US");
+  return Number(value.toFixed(2)).toLocaleString("en-US");
+}
+
+/**
+ * Substitute this visit's numbers into the formulas. Shown next to the
+ * results so the arithmetic can be checked without leaving the page.
+ */
+export function explainRaise(input: {
+  currentAnnual: number;
+  scenario: Scenario;
+  result: RaiseResult;
+  schedule: WorkSchedule;
+  period: PayPeriod;
+  inflationPercent: number;
+}): RaiseMathLine[] {
+  const { currentAnnual, scenario, result, schedule, period, inflationPercent } =
+    input;
+  const lines: RaiseMathLine[] = [];
+
+  if (scenario.mode === "percent") {
+    lines.push({
+      expression: `${formatMoneyDisplay(currentAnnual)} × (1 + ${formulaPercent(scenario.percent)} ÷ 100)`,
+      result: formatMoneyDisplay(result.newAnnual),
+      unit: "per year",
+    });
+  } else if (scenario.mode === "amount") {
+    const addedAnnual = toAnnual(
+      scenario.amount,
+      scenario.amountPeriod,
+      schedule,
+    );
+    if (scenario.amountPeriod !== "annual") {
+      lines.push({
+        expression: `${formatMoneyDisplay(scenario.amount)} ${PAY_PERIOD_SUFFIX[scenario.amountPeriod]} × ${formulaCount(periodsPerYear(scenario.amountPeriod, schedule))}`,
+        result: formatMoneyDisplay(addedAnnual),
+        unit: "a year",
+      });
+    }
+    lines.push({
+      expression: `${formatMoneyDisplay(currentAnnual)} + ${formatMoneyDisplay(addedAnnual)}`,
+      result: formatMoneyDisplay(result.newAnnual),
+      unit: "per year",
+    });
+  } else {
+    lines.push({
+      expression: `${formatMoneyDisplay(result.newAnnual)} − ${formatMoneyDisplay(currentAnnual)}`,
+      result: formatMoneyDisplay(result.increaseAnnual),
+      unit: "increase",
+    });
+    if (currentAnnual !== 0) {
+      lines.push({
+        expression: `${formatMoneyDisplay(result.increaseAnnual)} ÷ ${formatMoneyDisplay(currentAnnual)} × 100`,
+        result: formatPercent(result.percent),
+        unit: "",
+      });
+    }
+  }
+
+  const periods = periodsPerYear(period, schedule);
+  if (period !== "annual" && periods > 0) {
+    lines.push({
+      expression: `(${formatMoneyDisplay(result.newAnnual)} − ${formatMoneyDisplay(currentAnnual)}) ÷ ${formulaCount(periods)}`,
+      result: formatCurrency(result.increase[period]),
+      unit: PAY_PERIOD_SUFFIX[period],
+    });
+  }
+
+  const real = computeRealRaise(
+    currentAnnual,
+    result.newAnnual,
+    inflationPercent,
+  );
+  lines.push({
+    expression: `(1 + ${formulaPercent(result.percent)} ÷ 100) ÷ (1 + ${formulaPercent(inflationPercent)} ÷ 100) − 1`,
+    result: formatPercent(real.realPercent),
+    unit: "real raise",
+  });
+
+  return lines;
+}
