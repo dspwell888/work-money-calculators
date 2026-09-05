@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 const FAQS = [
   {
     q: "How do I work out my freelance rate?",
-    a: "Start from what you want to earn, add your business costs, add a margin if you want one, then divide by the hours you can realistically bill. The last step is where most people go wrong: dividing by 2,080 hours assumes every working hour is billable, and none of them are.",
+    a: "Start from what you want to earn, add your business costs, gross that figure up for a profit margin if you want one, then divide by the hours you can realistically bill. The last step is where most people go wrong: dividing by 2,080 hours assumes every working hour is billable, and none of them are.",
   },
   {
     q: "What is utilisation and why does it matter so much?",

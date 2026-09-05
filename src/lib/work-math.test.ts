@@ -213,6 +213,28 @@ describe("hourly to salary", () => {
     );
   });
 
+  it("round-trips salary to hourly with regular overtime", () => {
+    const annual = 61750; // $25 × (40 + 5 × 1.5) × 52
+    const hourly = salaryToHourly(annual, 40, 52, {
+      overtimeHours: 5,
+      overtimeMultiplier: 1.5,
+    });
+    expect(hourly).toBe(25);
+    expect(
+      computeHourlySalary({ ...base, hourlyRate: hourly, overtimeHours: 5 })
+        .annual,
+    ).toBe(annual);
+  });
+
+  it("round-trips salary to hourly after unpaid days", () => {
+    const hourly = salaryToHourly(52000, 40, 52, { unpaidDaysOff: 10 });
+    expect(hourly).toBe(26); // $52,000 over 2,000 paid hours
+    expect(
+      computeHourlySalary({ ...base, hourlyRate: hourly, unpaidDaysOff: 10 })
+        .annual,
+    ).toBe(52000);
+  });
+
   it("does not divide by zero with no hours", () => {
     expect(salaryToHourly(52000, 0, 52)).toBe(0);
     expect(salaryToHourly(52000, 40, 0)).toBe(0);

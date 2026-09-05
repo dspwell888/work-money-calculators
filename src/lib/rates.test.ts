@@ -155,9 +155,15 @@ describe("freelance rate", () => {
     expect(r.hourlyRate).toBeCloseTo(90000 / (161 * 8), 6);
   });
 
-  it("adds a profit margin on top of income and costs", () => {
+  it("treats profit margin as a share of billed revenue, not a markup", () => {
     const r = computeFreelanceRate({ ...base, profitMarginPercent: 20 });
-    expect(r.requiredRevenue).toBe(108000);
+    expect(r.requiredRevenue).toBe(112500);
+    expect((r.requiredRevenue - 90000) / r.requiredRevenue).toBeCloseTo(0.2, 9);
+  });
+
+  it("does not present a finite revenue at an impossible 100% margin", () => {
+    const r = computeFreelanceRate({ ...base, profitMarginPercent: 100 });
+    expect(r.requiredRevenue).toBe(Number.POSITIVE_INFINITY);
   });
 
   it("raises the rate as utilisation falls", () => {

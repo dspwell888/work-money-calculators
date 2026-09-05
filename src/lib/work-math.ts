@@ -194,14 +194,16 @@ export interface HourlySalaryResult {
 
 export function computeHourlySalary(i: HourlySalaryInput): HourlySalaryResult {
   const daysPerWeek = 5;
-  const unpaidWeeks = i.unpaidDaysOff / daysPerWeek;
+  const unpaidWeeks = Math.max(i.unpaidDaysOff, 0) / daysPerWeek;
   const paidWeeks = Math.max(i.weeksPerYear - unpaidWeeks, 0);
+  const regularHours = Math.max(i.hoursPerWeek, 0);
+  const overtimeHours = Math.max(i.overtimeHours, 0);
 
-  const regularAnnual = i.hourlyRate * i.hoursPerWeek * paidWeeks;
+  const regularAnnual = i.hourlyRate * regularHours * paidWeeks;
   const overtimeAnnual =
-    i.hourlyRate * i.overtimeMultiplier * i.overtimeHours * paidWeeks;
+    i.hourlyRate * i.overtimeMultiplier * overtimeHours * paidWeeks;
   const annual = regularAnnual + overtimeAnnual;
-  const paidHoursPerYear = (i.hoursPerWeek + i.overtimeHours) * paidWeeks;
+  const paidHoursPerYear = (regularHours + overtimeHours) * paidWeeks;
 
   return {
     regularAnnual,
@@ -221,7 +223,23 @@ export function salaryToHourly(
   annual: number,
   hoursPerWeek: number,
   weeksPerYear: number,
+  options: {
+    overtimeHours?: number;
+    overtimeMultiplier?: number;
+    unpaidDaysOff?: number;
+  } = {},
 ): number {
-  const hours = hoursPerWeek * weeksPerYear;
-  return hours > 0 ? annual / hours : 0;
+  const paidWeeks = Math.max(
+    weeksPerYear - Math.max(options.unpaidDaysOff ?? 0, 0) / 5,
+    0,
+  );
+  const regularHours = Math.max(hoursPerWeek, 0);
+  const overtimeHours = Math.max(options.overtimeHours ?? 0, 0);
+  const overtimeMultiplier = options.overtimeMultiplier ?? 1.5;
+  // Solve the same annual-pay equation used by computeHourlySalary for its
+  // base hourly rate. Overtime hours count at their multiplier; unpaid days
+  // reduce the paid weeks. This keeps both directions true inverses.
+  const weightedHours =
+    (regularHours + overtimeHours * overtimeMultiplier) * paidWeeks;
+  return weightedHours > 0 ? annual / weightedHours : 0;
 }

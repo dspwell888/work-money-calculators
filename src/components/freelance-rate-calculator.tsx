@@ -78,7 +78,7 @@ export function FreelanceRateCalculator() {
 
   const rows = [
     {
-      label: "Income you want to take home",
+      label: "Income you want to earn (before tax)",
       value: formatCurrency(parseNumber(state.targetIncome), true),
     },
     {
@@ -155,7 +155,7 @@ export function FreelanceRateCalculator() {
           <Field
             label="Profit margin"
             htmlFor="margin"
-            hint="On top, for reinvestment and risk"
+            hint="Share of billed revenue; must be under 100%"
           >
             <SuffixInput
               id="margin"
@@ -240,7 +240,7 @@ export function FreelanceRateCalculator() {
           idleLabel="Copy share link"
           doneLabel="Link copied"
           getValue={() =>
-            `${window.location.origin}${window.location.pathname}?${encode(state)}`
+            `${window.location.origin}${window.location.pathname}#${encode(state)}`
           }
         />
       </div>

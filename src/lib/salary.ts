@@ -326,9 +326,9 @@ export interface RaiseMathLine {
   unit: string;
 }
 
-function formulaPercent(value: number): string {
+function formulaNumber(value: number): string {
   if (!Number.isFinite(value)) return "—";
-  return `${Number(value.toFixed(2))}%`;
+  return String(Number(value.toFixed(2)));
 }
 
 function formulaCount(value: number): string {
@@ -355,7 +355,7 @@ export function explainRaise(input: {
 
   if (scenario.mode === "percent") {
     lines.push({
-      expression: `${formatMoneyDisplay(currentAnnual)} × (1 + ${formulaPercent(scenario.percent)} ÷ 100)`,
+      expression: `${formatMoneyDisplay(currentAnnual)} × (1 + ${formulaNumber(scenario.percent)} ÷ 100)`,
       result: formatMoneyDisplay(result.newAnnual),
       unit: "per year",
     });
@@ -407,7 +407,7 @@ export function explainRaise(input: {
     inflationPercent,
   );
   lines.push({
-    expression: `(1 + ${formulaPercent(result.percent)} ÷ 100) ÷ (1 + ${formulaPercent(inflationPercent)} ÷ 100) − 1`,
+    expression: `((1 + ${formulaNumber(result.percent)} ÷ 100) ÷ (1 + ${formulaNumber(inflationPercent)} ÷ 100) − 1) × 100`,
     result: formatPercent(real.realPercent),
     unit: "real raise",
   });

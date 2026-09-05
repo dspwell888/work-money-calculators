@@ -137,7 +137,7 @@ export interface FreelanceInput {
   targetIncome: number;
   /** Business costs for the year: software, insurance, equipment. */
   annualCosts: number;
-  /** Margin on top, as a percentage of income plus costs. */
+  /** Profit as a percentage of billed revenue. */
   profitMarginPercent: number;
   /** Working days a year before subtracting non-billable time. */
   workingDays: number;
@@ -158,7 +158,12 @@ export interface FreelanceResult {
 
 export function computeFreelanceRate(i: FreelanceInput): FreelanceResult {
   const beforeMargin = i.targetIncome + i.annualCosts;
-  const requiredRevenue = beforeMargin * (1 + i.profitMarginPercent / 100);
+  const marginRate = i.profitMarginPercent / 100;
+  // Margin is profit / revenue, not a markup on costs. At a 20% margin,
+  // $90,000 of income and costs therefore needs $112,500 of revenue:
+  // ($112,500 - $90,000) / $112,500 = 20%.
+  const requiredRevenue =
+    marginRate < 1 ? beforeMargin / (1 - marginRate) : Number.POSITIVE_INFINITY;
 
   const billableDays = i.workingDays * (i.utilisationPercent / 100);
   const billableHours = billableDays * i.hoursPerDay;

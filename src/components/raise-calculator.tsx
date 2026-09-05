@@ -181,7 +181,8 @@ export function RaiseCalculator() {
     // (useSearchParams + Suspense) would keep the calculator out of the static
     // HTML entirely and flash a fallback, which costs more than one frame.
     /* eslint-disable react-hooks/set-state-in-effect */
-    const fromUrl = decodeState(window.location.search);
+    const encoded = window.location.hash.slice(1) || window.location.search;
+    const fromUrl = decodeState(encoded);
     if (fromUrl) setState(fromUrl);
     setHydrated(true);
     /* eslint-enable react-hooks/set-state-in-effect */
@@ -191,7 +192,7 @@ export function RaiseCalculator() {
   React.useEffect(() => {
     if (!hydrated) return;
     const id = window.setTimeout(() => {
-      const url = `${window.location.pathname}?${encodeState(state)}`;
+      const url = `${window.location.pathname}#${encodeState(state)}`;
       window.history.replaceState(null, "", url);
     }, 400);
     return () => window.clearTimeout(id);
@@ -344,7 +345,9 @@ export function RaiseCalculator() {
                 scenario={sc}
                 result={results[i]}
                 period={state.period}
+                schedule={schedule}
                 taxRate={showTakeHome ? taxRate : null}
+                inflationPercent={inflationPercent}
                 onChange={(next) => patchScenario(i, next)}
                 onRemove={() => removeScenario(i)}
               />
@@ -552,8 +555,7 @@ export function RaiseCalculator() {
         </div>
       </Panel>
 
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3">
         <CopyButton
           getValue={() => summary}
           idleLabel="Copy summary"
@@ -562,18 +564,13 @@ export function RaiseCalculator() {
         />
         <CopyButton
           getValue={() =>
-            `${window.location.origin}${window.location.pathname}?${encodeState(state)}`
+            `${window.location.origin}${window.location.pathname}#${encodeState(state)}`
           }
           idleLabel="Copy share link"
           doneLabel="Link copied"
           icon={<Link2 className="size-3.5" />}
           variant="outline"
         />
-      </div>
-        <p className="max-w-prose text-[0.8125rem] leading-relaxed text-muted-foreground">
-          The share link contains the values you entered. Anyone with the
-          link — and your browser history or sync — can see them.
-        </p>
       </div>
     </div>
   );
@@ -773,14 +770,18 @@ function ScenarioCard({
   scenario,
   result,
   period,
+  schedule,
   taxRate,
+  inflationPercent,
   onChange,
   onRemove,
 }: {
   scenario: Scenario;
   result: ReturnType<typeof computeRaise>;
   period: PayPeriod;
+  schedule: WorkSchedule;
   taxRate: number | null;
+  inflationPercent: number;
   onChange: (next: Partial<Scenario>) => void;
   onRemove: () => void;
 }) {
@@ -832,6 +833,16 @@ function ScenarioCard({
           </p>
         )}
       </div>
+      <ShowTheMath
+        lines={explainRaise({
+          currentAnnual: result.currentAnnual,
+          scenario,
+          result,
+          schedule,
+          period,
+          inflationPercent,
+        })}
+      />
     </Panel>
   );
 }

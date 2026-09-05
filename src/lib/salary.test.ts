@@ -333,7 +333,7 @@ describe("explainRaise — substitute the visitor's numbers", () => {
       inflationPercent: 3,
     });
     expect(lines[0]).toEqual({
-      expression: "$60,000 × (1 + 5% ÷ 100)",
+      expression: "$60,000 × (1 + 5 ÷ 100)",
       result: "$63,000",
       unit: "per year",
     });
@@ -343,7 +343,7 @@ describe("explainRaise — substitute the visitor's numbers", () => {
       unit: "every 2 weeks",
     });
     expect(lines[2]).toEqual({
-      expression: "(1 + 5% ÷ 100) ÷ (1 + 3% ÷ 100) − 1",
+      expression: "((1 + 5 ÷ 100) ÷ (1 + 3 ÷ 100) − 1) × 100",
       result: "+1.94%",
       unit: "real raise",
     });

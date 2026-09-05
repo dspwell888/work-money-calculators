@@ -260,7 +260,7 @@ export function ProRataCalculator() {
           idleLabel="Copy share link"
           doneLabel="Link copied"
           getValue={() =>
-            `${window.location.origin}${window.location.pathname}?${encode(state)}`
+            `${window.location.origin}${window.location.pathname}#${encode(state)}`
           }
         />
       </div>

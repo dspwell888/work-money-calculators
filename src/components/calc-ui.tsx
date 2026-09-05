@@ -405,7 +405,7 @@ export function CopyButton({
     window.setTimeout(() => setState("idle"), 2500);
   };
 
-  return (
+  const button = (
     <Button variant={variant} size="lg" className="rounded-sm" onClick={copy}>
       {state === "copied" ? (
         <Check className="size-3.5" />
@@ -418,6 +418,19 @@ export function CopyButton({
           ? "Press Ctrl/Cmd+C"
           : idleLabel}
     </Button>
+  );
+
+  if (idleLabel !== "Copy share link") return button;
+
+  return (
+    <div className="flex max-w-xs flex-col gap-1.5">
+      {button}
+      <p className="text-xs leading-relaxed text-muted-foreground">
+        The link contains every value you entered. Anyone with it can read
+        them. New links keep those values after the #, so they are not sent
+        to the site host.
+      </p>
+    </div>
   );
 }
 
@@ -448,8 +461,9 @@ export function deltaTone(value: number): "gain" | "loss" | "neutral" {
 }
 
 /**
- * Restore state from the query string after mount and keep the address bar
- * shareable. Static HTML is built once for every visitor, so reading
+ * Restore state from the URL fragment after mount and keep the address bar
+ * shareable. Legacy query-string links remain readable. Static HTML is built
+ * once for every visitor, so reading
  * window.location during render would make the first client render disagree
  * with it.
  */
@@ -463,7 +477,8 @@ export function useUrlState<T>(
 
   React.useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect */
-    const fromUrl = decode(window.location.search);
+    const encoded = window.location.hash.slice(1) || window.location.search;
+    const fromUrl = decode(encoded);
     if (fromUrl) setState(fromUrl);
     setHydrated(true);
     /* eslint-enable react-hooks/set-state-in-effect */
@@ -478,7 +493,7 @@ export function useUrlState<T>(
       window.history.replaceState(
         null,
         "",
-        `${window.location.pathname}?${encode(state)}`,
+        `${window.location.pathname}#${encode(state)}`,
       );
     }, 400);
     return () => window.clearTimeout(id);

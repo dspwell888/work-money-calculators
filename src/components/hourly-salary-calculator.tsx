@@ -91,11 +91,16 @@ export function HourlySalaryCalculator() {
   // engine, so both directions share one code path and cannot disagree.
   const hourlyRate = toSalary
     ? parseNumber(state.hourlyRate)
-    : salaryToHourly(
-        parseNumber(state.annualSalary),
-        hoursPerWeek,
-        weeksPerYear,
-      );
+      : salaryToHourly(
+          parseNumber(state.annualSalary),
+          hoursPerWeek,
+          weeksPerYear,
+          {
+            overtimeHours: parseNumber(state.overtimeHours),
+            overtimeMultiplier: parseNumber(state.overtimeMultiplier) || 1.5,
+            unpaidDaysOff: parseNumber(state.unpaidDaysOff),
+          },
+        );
 
   const result = computeHourlySalary({
     hourlyRate,
@@ -300,7 +305,7 @@ export function HourlySalaryCalculator() {
           idleLabel="Copy share link"
           doneLabel="Link copied"
           getValue={() =>
-            `${window.location.origin}${window.location.pathname}?${encode(state)}`
+            `${window.location.origin}${window.location.pathname}#${encode(state)}`
           }
         />
       </div>
